@@ -1,0 +1,388 @@
+#include <iostream>
+#include<iomanip>
+#include<fstream>
+
+using namespace std;
+ofstream fout;
+ifstream fin;
+char path[] = "polyclinic.txt";
+
+struct doctor
+{
+	int Speciality; // Специальность(1-терапевт, 2-кардиолог, 3- стоматолог)
+	int Qualification; // Квалификация (0-высшая, 1- первая, 2- вторая)
+	char* FIO; // ФИО врача
+};
+
+void Print_menu() // Печать меню
+{
+	cout << "Введите цифру, соответствующей функции меню\n";
+	cout << "Добавить нового врача  ........................................ 1\n";
+	cout << "Распечать в табличном виде  ................................... 2\n";
+	cout << "Поиск врача по ФИО  ........................................... 3\n";
+	cout << "Фильтр по квалификации и специальности ........................ 4\n";
+	cout << "Сортировка по алфавиту  ....................................... 5\n";
+	cout << "Выход из программы  ........................................... 6\n";
+}
+
+int check(int k)
+{
+	while (cin.fail())
+	{
+		cin.clear();
+		cin.ignore(numeric_limits<streamsize>::max(), '\n');
+		cout << "Ошибка, введите снова:" << endl;
+		cin >> k;
+	}
+	return k;
+}
+
+doctor* add_new(doctor* arr, int& valuedoctors)
+{
+	valuedoctors++;
+	doctor* new_arr = new doctor[valuedoctors];
+	for (int i = 0; i < valuedoctors - 1; i++)
+	{
+		new_arr[i].Speciality = arr[i].Speciality;
+		new_arr[i].Qualification = arr[i].Qualification;
+		new_arr[i].FIO = arr[i].FIO;
+	}
+
+	char* fio = new char[50]; // присваиваем новому врачу ФИО
+	cout << "Введите ФИО врача: ";
+	cin.getline(fio, 50); cin.getline(fio, 50);
+	new_arr[valuedoctors - 1].FIO = fio;
+
+	int speciality; // присваиваем новому врачу специальность
+	cout << "Введите цифру в соответствии со специальностью врача (1-терапевт, 2-кардиолог, 3- стоматолог): ";
+
+	while (true)
+	{
+		cin >> speciality;
+		check(speciality);
+		if (speciality >= 1 && speciality <= 3)
+		{
+			new_arr[valuedoctors - 1].Speciality = speciality;
+			break;
+		}
+		else
+		{
+			cout << "Введите цифру от 1 до 3 в соответствии со специальностью врача: ";
+		}
+	}
+
+	int qualification; // присваиваем новому врачу квалификацию
+	cout << "Введите цифру в соответствии с квалификацией врача (0-высшая, 1- первая, 2- вторая): ";
+
+	while (true)
+	{
+		cin >> qualification;
+		check(qualification);
+
+		if (qualification >= 0 && qualification <= 2)
+		{
+			new_arr[valuedoctors - 1].Qualification = qualification;
+			break;
+		}
+		else
+		{
+			cout << "Введите цифру от 0 до 2 в соответствии с квалификацией врача: ";
+		}
+	}
+	delete[]arr;
+	return new_arr;
+}
+
+void print_information(doctor* arr, int i)
+{
+	int probel = 40;
+	int twenty = 20;
+
+	cout << setw(strlen(arr[i].FIO) + (probel - strlen(arr[i].FIO)) / 2) << arr[i].FIO;
+
+	switch (arr[i].Speciality)
+	{
+	case 1:
+		cout << setw((probel - strlen(arr[i].FIO)) / 2 + 15) << "Терапевт";
+		break;
+	case 2:
+		cout << setw((probel - strlen(arr[i].FIO)) / 2 + 15) << "Кардиолог";
+		break;
+	case 3:
+		cout << setw((probel - strlen(arr[i].FIO)) / 2 + 15) << "Стоматолог";
+		break;
+	}
+	cout << setw(twenty);
+
+	switch (arr[i].Qualification)
+	{
+	case 0:
+		cout << setw(25) << "Высшая" << endl;
+		break;
+	case 1:
+		cout << setw(25) << "Первая" << endl;
+		break;
+	case 2:
+		cout << setw(25) << "Вторая" << endl;
+		break;
+	}
+}
+
+void print_header()
+{
+	cout << setw(22) << "ФИО" << setw(40) << "Специальность    " << setw(22) << " Квалификация" << endl;
+	cout << "_________________________________________________________________________________________" << endl;
+}
+
+
+void print_table(doctor* arr, int& valuedoctors)
+{
+	for (int i = 0; i < valuedoctors; i++)
+	{
+		print_information(arr, i);
+	}
+}
+
+void search_by_FIO(doctor* arr, int& valuedoctors)
+{
+	char* Fio = new char[50];
+	cin.getline(Fio, 50); cin.getline(Fio, 50);
+	int exit = 0;
+
+
+	for (int i = 0; i < valuedoctors; i++)
+	{
+		if (strcmp(Fio, arr[i].FIO) == 0)
+		{
+			if (exit == 0)
+			{
+				print_header();
+				exit++;
+			}
+			print_information(arr, i);
+		}
+	}
+	if (exit == 0)
+	{
+		cout << "В базе поликлинники нет врача с таким ФИО" << endl;;
+	}
+	delete[] Fio;
+}
+
+void search_speciality_and_qualification(doctor* arr, int& valuedoctors)
+{
+	int num_speciality;
+	int num_qualification;
+	int exit_1 = 0;
+
+	if (valuedoctors == 0)
+	{
+		cout << "В базе поликлинники нет врачей" << endl;
+	}
+	else
+	{
+		cout << "Введите цифру в соответствии со специальностью врача (1-терапевт, 2-кардиолог, 3- стоматолог): ";
+		cin >> num_speciality;
+		check(num_speciality);
+		cout << "Введите цифру в соответствии с квалификацией врача (0-высшая, 1- первая, 2- вторая): ";
+		cin >> num_qualification;
+		check(num_qualification);
+
+		while (true)
+		{
+			if ((num_speciality >= 1 && num_speciality <= 3) && (num_qualification >= 0 && num_qualification <= 2))
+			{
+				for (int i = 0; i < valuedoctors; i++)
+				{
+					if (arr[i].Speciality == num_speciality && arr[i].Qualification == num_qualification)
+					{
+						if (exit_1 == 0)
+						{
+							print_header();
+							exit_1++;
+						}
+						print_information(arr, i);
+					}
+				}
+				if (exit_1 == 0)
+				{
+					cout << "В базе поликлинники нет врачей" << endl;
+				}
+			}
+			else
+			{
+				cout << "Вы ввели некорректное значение специальности или квалификации";
+			}
+		}
+	}
+}
+
+void sort_alphabet(doctor* arr, int& valuedoctors)
+{
+	char* Change;
+	int change;
+	for (int i = 0; i < valuedoctors; i++)
+	{
+		for (int j = 0; j < valuedoctors-1; j++)
+		{
+			if (strcmp(arr[j].FIO, arr[j + 1].FIO) > 0)
+			{
+				Change = arr[j].FIO;
+				arr[j].FIO = arr[j + 1].FIO;
+				arr[j + 1].FIO = Change;
+
+				change = arr[j].Speciality;
+				arr[j].Speciality = arr[j + 1].Speciality;
+				arr[j + 1].Speciality = change;
+
+				change = arr[j].Speciality;
+				arr[j].Qualification = arr[j + 1].Qualification;
+				arr[j + 1].Qualification = change;
+			}
+		}
+	}
+}
+
+void save_information(doctor* arr, int i)
+{
+	int probel = 40;
+	int twenty = 20;
+
+	fout << setw(strlen(arr[i].FIO) + (probel - strlen(arr[i].FIO)) / 2) << arr[i].FIO;
+
+	switch (arr[i].Speciality)
+	{
+	case 1:
+		fout << setw((probel - strlen(arr[i].FIO)) / 2 + 15) << "Терапевт";
+		break;
+	case 2:
+		fout << setw((probel - strlen(arr[i].FIO)) / 2 + 15) << "Кардиолог";
+		break;
+	case 3:
+		fout << setw((probel - strlen(arr[i].FIO)) / 2 + 15) << "Стоматолог";
+		break;
+	}
+	cout << setw(twenty);
+
+	switch (arr[i].Qualification)
+	{
+	case 0:
+		fout << setw(25) << "Высшая" << endl;
+		break;
+	case 1:
+		fout << setw(25) << "Первая" << endl;
+		break;
+	case 2:
+		fout << setw(25) << "Вторая" << endl;
+		break;
+	}
+}
+
+void save_header()
+{
+	fout << setw(22) << "ФИО" << setw(40) << "Специальность    " << setw(22) << " Квалификация" << endl;
+	fout << "_________________________________________________________________________________________" << endl;
+}
+
+
+int main()
+{
+	setlocale(LC_ALL, "Russian");
+
+	fin.open(path);
+	int valuedoctors = 0;
+	if (fin.is_open()) 
+	{
+		fin >> valuedoctors;
+	}
+
+	doctor* array = new doctor[valuedoctors];
+	if (fin.is_open()) {
+		for (int i = 0; i < valuedoctors; i++)
+		{
+			char* name = new char[128];
+			fin.getline(name, 128);
+			fin.getline(name, 128);
+			array[i].FIO = name;
+			fin >> array[i].Speciality;
+			fin >> array[i].Qualification;
+		}
+	}
+
+	int num_in_menu;
+
+	while (true)
+	{
+		Print_menu();
+		cout << "Введите номер из меню, который Вас интересует: ";
+		cin >> num_in_menu;
+		check(num_in_menu);
+
+		if (num_in_menu == 6)
+			break;
+
+		switch (num_in_menu)
+		{
+		case 1:
+		{
+			array = add_new(array, valuedoctors);
+			break;
+		}
+		case 2:
+		{
+			if (valuedoctors == 0)
+			{
+				cout << "В базе поликлинники нет врачей" << endl;
+			}
+			else
+			{
+				print_header();
+				print_table(array, valuedoctors);
+			}
+			break;
+		}
+		case 3:
+		{
+			cout << "Введите ФИО в точности так, как он записан в базе: ";
+			search_by_FIO(array, valuedoctors);
+			break;
+		}
+		case 4:
+		{
+			search_speciality_and_qualification(array, valuedoctors);
+			break;
+		}
+		case 5:
+		{
+			if (valuedoctors == 0)
+			{
+				cout << "В базе поликлинники нет врачей" << endl;
+				break;
+			}
+			else
+			{
+				sort_alphabet(array, valuedoctors);
+				print_header();
+				print_table(array, valuedoctors);
+				break;
+			}
+		}
+		default:
+			cout << "Введите цифру, соответствующую пункту меню!" << endl;
+		}
+	}
+	fin.close();
+	fout.open(path); 
+	fout << "Количество врачей: " << valuedoctors << endl;
+	save_header();
+	for (int i = 0; i < valuedoctors; i++)
+	{
+		save_information(array, i);
+	}
+	for (int i = 0; i < valuedoctors; i++)
+	{
+		delete[] array[i].FIO;
+	}
+
+	delete[] array;
+}
